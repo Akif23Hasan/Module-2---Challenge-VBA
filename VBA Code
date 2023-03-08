@@ -1,0 +1,150 @@
+Sub Module_2_Challenge()
+
+ 'Define all headers
+    Dim ticker_header As String
+    Dim date_header As String
+    Dim open_header As String
+    Dim high_header As String
+    Dim low_header As String
+    Dim close_header As String
+    Dim Volume_Header As String
+    
+    'Define headers for summary table
+    Dim ticker_summary As String
+    Dim year_changeheader As String
+    Dim percentage_changeheader As String
+    Dim stockvolume As String
+    
+    'Define all values
+    Dim ticker_code As Double
+    Dim open_value As Double
+    Dim high_value As Double
+    Dim low_value As Double
+    Dim close_value As Double
+    Dim volume_value As Double
+    
+    ' Define VBA Calculation Values
+    Dim ws As Worksheet
+    Dim tickercounter As Long
+    Dim totalvolume As Double
+    Dim lastrow As Long
+    Dim year_change As Double
+    Dim percentage_change As Double
+    Dim summary_table_row As Integer
+           
+   'Create loop across all worksheets in workbook
+   For Each ws In Worksheets
+   
+        ' Insert column headers
+        ws.Range("J1").Value = "Ticker"
+        ws.Range("K1").Value = "Yearly Change"
+        ws.Range("L1").Value = "Percentage Change"
+        ws.Range("M1").Value = "Volume Change"
+            
+        'output_range will paste values consequtively
+        summary_table_row = 2
+            
+        ' create forumula for dynamic last row calcualtion
+        lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        
+        'Create Loop for rows
+        For i = 2 To lastrow
+        
+            'Look at row below and determine if the row above is the same,
+            If ws.Cells(i + 1, 1).Value = ws.Cells(i, 1).Value Then
+                tickercounter = tickercounter + 1
+                totalvolume = totalvolume + ws.Cells(i, 7).Value
+                
+                'if the same add one to the ticker_counter
+                If tickercounter = 1 Then
+                    open_value = ws.Cells(i, 3).Value
+                Else
+                
+            End If
+                
+            Else
+            'Output Ticker and stock volume values in the summary table and get close value
+             ws.Cells(summary_table_row, 10).Value = ws.Cells(i, 1).Value
+             ws.Cells(summary_table_row, 13).Value = totalvolume
+             close_value = ws.Cells(i, 6).Value
+             
+             'If open value is not equal to zero then preform the calulcations for the summary table.
+             'However if the value is not present for opening abis equal to zero we wont be able to calculate change for tickers that don't have an open value
+             If open_value <> 0 Then
+                year_change = close_value - open_value
+                percentage_change = (close_value - open_value) / open_value
+                
+                Else
+                'If the values are equal to zero then in the above if function keep the values are zero for calcualtion
+                 year_change = 0
+                 percentage_change = 0
+            
+            End If
+            
+            'output the year_change to the respective ticker on summary table
+            ws.Cells(summary_table_row, 11).Value = year_change
+            'output the percent_change to the respective ticker on the summary table
+            ws.Cells(summary_table_row, 12).Value = percentage_change
+            
+            'conditional formatting to identify positie and negative ticker price
+            If ws.Cells(summary_table_row, 11) < 0 Then
+                ws.Cells(summary_table_row, 11).Interior.ColorIndex = 3
+                Else
+                ws.Cells(summary_table_row, 11).Interior.ColorIndex = 10
+            End If
+            
+            'reset the ticker counter and volume_sum and make the code go though into the next ticker set
+            tickercounter = 0
+            totalvolume = 0
+            summary_table_row = summary_table_row + 1
+    
+        'Convert the percetnage into percentage format
+         ws.Range("L:L").NumberFormat = "0.00%"
+         ws.Range("R2:R3").NumberFormat = "0.00%"
+    
+        End If
+
+    Next i
+    
+            'Create variable required for bonus table calulcations
+            Dim MaxValue As Variant
+            Dim MinValue As Variant
+            Dim GreatestVolume As Variant
+            Dim Ticker_MaxValue As Variant
+            Dim Ticker_MinValue As Variant
+            Dim Ticker_GreatestVolume As Variant
+            
+            'Create table for bonus summary
+            ws.Range("P2").Value = "Greatest % increase"
+            ws.Range("P3").Value = "Greatest % decrease"
+            ws.Range("P4").Value = "Greatest total volume"
+            ws.Range("Q1").Value = "Ticker Code"
+            ws.Range("R1").Value = "Value"
+            
+            'Calculate the required values for the bonus
+            MaxValue = Application.WorksheetFunction.Max(ws.Range("L:L"))
+            MinValue = Application.WorksheetFunction.Min(ws.Range("L:L"))
+            GreatestVolume = Application.WorksheetFunction.Max(ws.Range("M:M"))
+            
+            ws.Range("R2").Value = Application.WorksheetFunction.Max(ws.Range("L:L"))
+            ws.Range("R3").Value = Application.WorksheetFunction.Min(ws.Range("L:L"))
+            ws.Range("R4").Value = Application.WorksheetFunction.Max(ws.Range("M:M"))
+            
+            'Pull the ticker code for the corresponding summary statistics
+            Set Ticker_MaxValue = ws.Cells(Application.Match(MaxValue, ws.Range("L:L"), 0), 1)
+            Set Ticker_MinValue = ws.Cells(Application.Match(MinValue, ws.Range("L:L"), 0), 1)
+            Set Ticker_GreatestVolume = ws.Cells(Application.Match(GreatestVolume, ws.Range("M:M"), 0), 1)
+            
+            ws.Range("Q2").Value = Ticker_MaxValue.Value
+            ws.Range("Q3").Value = Ticker_MinValue.Value
+            ws.Range("Q4").Value = Ticker_GreatestVolume.Value
+    
+    'reset the output range calculator across all the worksheets
+    
+    summary_table_row = 2
+
+
+Next ws
+
+End Sub
+
